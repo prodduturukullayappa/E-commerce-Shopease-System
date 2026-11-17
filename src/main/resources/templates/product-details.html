@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${product.name})}"></head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+
+<main class="container" style="margin-top: 32px;">
+    <div th:replace="~{fragments :: alerts}"></div>
+
+    <a th:href="@{/products}" class="btn btn-outline btn-sm" style="margin-bottom: 20px;">&larr; Back to Products</a>
+
+    <div class="card grid-2" style="align-items: center;">
+        <div>
+            <img th:src="${product.imageUrl}" th:alt="${product.name}"
+                 style="width:100%; max-height:420px; object-fit:cover; border-radius:10px; border:1px solid var(--border);">
+        </div>
+        <div>
+            <span class="product-category" th:text="${product.category != null ? product.category.name : 'General'}">Category</span>
+            <h1 style="font-size: 2rem; margin: 8px 0;" th:text="${product.name}">Product Name</h1>
+            <div style="font-size: 1.8rem; font-weight: 800; color: var(--primary); margin: 12px 0;"
+                 th:text="'₹' + ${#numbers.formatDecimal(product.price, 1, 2)}">₹0.00</div>
+
+            <p style="margin-bottom: 16px;">
+                <strong>Availability: </strong>
+                <span th:if="${product.stock > 0}" style="color:var(--success); font-weight:700;"
+                      th:text="'In Stock (' + product.stock + ' units available)'">In Stock</span>
+                <span th:if="${product.stock <= 0}" style="color:var(--danger); font-weight:700;">Out of Stock</span>
+            </p>
+
+            <p style="color: var(--text); margin-bottom: 24px; white-space: pre-line;" th:text="${product.description}">
+                Detailed product description goes here.
+            </p>
+
+            <div th:if="${product.stock > 0}">
+                <form th:action="@{/cart/add}" method="post" style="display:flex; gap:12px; align-items:end; flex-wrap:wrap;">
+                    <input type="hidden" name="productId" th:value="${product.id}">
+                    <div style="width: 95px;">
+                        <label for="quantity" style="font-size:0.85rem; font-weight:600;">Quantity</label>
+                        <input type="number" id="quantity" name="quantity" value="1" min="1" th:max="${product.stock}" class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="padding: 11px 22px;">Add to Cart</button>
+                    <a id="buyNowLink"
+                       th:attr="data-base-href=@{/checkout/buy-now(productId=${product.id})}"
+                       th:href="@{/checkout/buy-now(productId=${product.id},quantity=1)}"
+                       class="btn btn-success" style="padding: 11px 24px;">Buy Now</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments :: footer}"></div>
+</body>
+</html>

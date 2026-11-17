@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Checkout & Payment')}"></head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+
+<main class="container">
+    <div th:replace="~{fragments :: alerts}"></div>
+
+    <div class="section-header">
+        <h2 th:text="${isBuyNow ? 'Express Buy Now Checkout' : 'Cart Checkout & Payment'}">Checkout</h2>
+    </div>
+
+    <div class="cart-layout">
+        <div class="card">
+            <h3 style="margin-bottom: 16px;">1. Delivery Information</h3>
+            <form th:action="@{/checkout/place-order}" method="post">
+                <input type="hidden" name="isBuyNow" th:value="${isBuyNow}">
+                <input th:if="${isBuyNow}" type="hidden" name="productId" th:value="${buyNowProduct.id}">
+                <input th:if="${isBuyNow}" type="hidden" name="quantity" th:value="${buyNowQuantity}">
+
+                <div class="form-group">
+                    <label>Customer Name</label>
+                    <input type="text" class="form-control" th:value="${user.fullName}" readonly style="background:#f1f5f9;">
+                </div>
+                <div class="form-group">
+                    <label for="phone">Contact Phone Number *</label>
+                    <input type="text" id="phone" name="phone" th:value="${user.phone}" class="form-control" required placeholder="Enter phone number">
+                </div>
+                <div class="form-group">
+                    <label for="shippingAddress">Complete Delivery Address *</label>
+                    <textarea id="shippingAddress" name="shippingAddress" rows="3" class="form-control" required
+                              th:text="${user.address}" placeholder="House/Flat No, Street, Landmark, City, State, PIN Code"></textarea>
+                </div>
+
+                <h3 style="margin: 24px 0 12px;">2. Payment Details</h3>
+                <div class="form-group">
+                    <label class="payment-option">
+                        <input type="radio" name="paymentMethod" value="Cash on Delivery" checked>
+                        <strong> Cash on Delivery (COD)</strong> — Pay in cash when your order arrives
+                    </label>
+                    <label class="payment-option">
+                        <input type="radio" name="paymentMethod" value="UPI">
+                        <strong> UPI Payment</strong> — Google Pay / PhonePe / Paytm UPI ID
+                    </label>
+                    <label class="payment-option">
+                        <input type="radio" name="paymentMethod" value="Card">
+                        <strong> Credit / Debit Card</strong> — Instant card payment
+                    </label>
+                </div>
+
+                <div id="paymentReferenceBox" class="form-group" style="display:none; background:#f8fafc; padding:14px; border-radius:8px; border:1px solid var(--border);">
+                    <label id="paymentReferenceLabel" for="paymentReference">Payment Reference *</label>
+                    <input type="text" id="paymentReference" name="paymentReference" class="form-control" placeholder="">
+                </div>
+
+                <button type="submit" class="btn btn-success" style="width:100%; padding:14px; font-size:1.05rem; margin-top:10px;">
+                    Confirm &amp; Pay (₹<span th:text="${#numbers.formatDecimal(cartTotal, 1, 2)}">0.00</span>)
+                </button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-bottom: 16px;">Order Summary</h3>
+
+            <!-- Buy Now Single Product Summary -->
+            <div th:if="${isBuyNow}" style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:0.95rem;">
+                <span th:text="${buyNowProduct.name} + ' x ' + ${buyNowQuantity}">Product x 1</span>
+                <span style="font-weight:700;" th:text="'₹' + ${#numbers.formatDecimal(cartTotal, 1, 2)}">₹0.00</span>
+            </div>
+
+            <!-- Cart Items Summary -->
+            <div th:unless="${isBuyNow}" th:each="item : ${cartItems}" style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:0.92rem;">
+                <span th:text="${item.product.name} + ' x ' + ${item.quantity}">Item</span>
+                <span style="font-weight:600;" th:text="'₹' + ${#numbers.formatDecimal(item.subtotal, 1, 2)}">₹0.00</span>
+            </div>
+
+            <hr style="border:none; border-top:1px solid var(--border); margin:14px 0;">
+            <div style="display:flex; justify-content:space-between; font-size:1.2rem; font-weight:800;">
+                <span>Total Payable</span>
+                <span style="color:var(--primary);" th:text="'₹' + ${#numbers.formatDecimal(cartTotal, 1, 2)}">₹0.00</span>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments :: footer}"></div>
+</body>
+</html>

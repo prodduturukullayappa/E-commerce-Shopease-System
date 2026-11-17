@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Products')}"></head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+
+<main class="container">
+    <div th:replace="~{fragments :: alerts}"></div>
+
+    <div class="section-header">
+        <h2>Product Catalog</h2>
+        <span style="color: var(--muted);" th:text="${#lists.size(products)} + ' items found'">0 items</span>
+    </div>
+
+    <div class="card" style="padding: 18px;">
+        <form th:action="@{/products}" method="get" style="display:flex; gap:14px; flex-wrap:wrap; align-items:end;">
+            <div style="flex: 2; min-width: 200px;">
+                <label style="font-size:0.85rem; font-weight:600;">Search by Name</label>
+                <input type="text" name="keyword" th:value="${selectedKeyword}" class="form-control" placeholder="Search keyword...">
+            </div>
+            <div style="flex: 1; min-width: 180px;">
+                <label style="font-size:0.85rem; font-weight:600;">Category</label>
+                <select name="categoryId" class="form-control">
+                    <option value="">All Categories</option>
+                    <option th:each="cat : ${categories}"
+                            th:value="${cat.id}"
+                            th:text="${cat.name}"
+                            th:selected="${selectedCategoryId != null && selectedCategoryId == cat.id}"></option>
+                </select>
+            </div>
+            <div style="flex: 1; min-width: 180px;">
+                <label style="font-size:0.85rem; font-weight:600;">Sort by Price</label>
+                <select name="sort" class="form-control">
+                    <option value="newest" th:selected="${selectedSort == 'newest'}">Newest First</option>
+                    <option value="price_asc" th:selected="${selectedSort == 'price_asc'}">Price: Low to High</option>
+                    <option value="price_desc" th:selected="${selectedSort == 'price_desc'}">Price: High to Low</option>
+                </select>
+            </div>
+            <div style="display:flex; gap:8px;">
+                <button type="submit" class="btn btn-primary">Apply</button>
+                <a th:href="@{/products}" class="btn btn-outline">Reset</a>
+            </div>
+        </form>
+    </div>
+
+    <div th:if="${#lists.isEmpty(products)}" class="empty-state">
+        <h3>No matching products found</h3>
+        <p>Try clearing your filters or check back once the admin adds inventory.</p>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(products)}" class="product-grid">
+        <div th:each="product : ${products}" class="product-card">
+            <a th:href="@{/products/{id}(id=${product.id})}">
+                <img th:src="${product.imageUrl}" th:alt="${product.name}">
+            </a>
+            <div class="product-body">
+                <span class="product-category" th:text="${product.category != null ? product.category.name : 'General'}">Category</span>
+                <a th:href="@{/products/{id}(id=${product.id})}" class="product-title" th:text="${product.name}">Product Name</a>
+                <p style="font-size:0.88rem; color:var(--muted); margin-bottom:8px;"
+                   th:text="${#strings.abbreviate(product.description, 70)}">Description</p>
+                <div class="product-price" th:text="'₹' + ${#numbers.formatDecimal(product.price, 1, 2)}">₹0.00</div>
+                <small th:if="${product.stock > 0}" style="color:var(--success);" th:text="'In Stock (' + product.stock + ')'"></small>
+                <small th:if="${product.stock <= 0}" style="color:var(--danger);">Out of Stock</small>
+
+                <div class="product-actions" th:if="${product.stock > 0}">
+                    <form th:action="@{/cart/add}" method="post" style="flex:1;">
+                        <input type="hidden" name="productId" th:value="${product.id}">
+                        <button type="submit" class="btn btn-primary btn-sm" style="width:100%;">Add to Cart</button>
+                    </form>
+                    <a th:href="@{/checkout/buy-now(productId=${product.id},quantity=1)}"
+                       class="btn btn-success btn-sm" style="flex:1;">Buy Now</a>
+                </div>
+                <div class="product-actions">
+                    <a th:href="@{/products/{id}(id=${product.id})}" class="btn btn-outline btn-sm" style="width:100%;">Product Details</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments :: footer}"></div>
+</body>
+</html>

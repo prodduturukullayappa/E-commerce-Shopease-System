@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Home')}"></head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+
+<main>
+    <section class="hero">
+        <div class="container">
+            <h1>Smart Shopping Made Simple</h1>
+            <p>Browse our live catalog, add items to your cart or use instant Buy Now with Cash on Delivery, UPI, or Card payment.</p>
+            <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+                <a th:href="@{/products}" class="btn btn-accent">Browse All Products</a>
+                <a th:href="@{/login}" class="btn btn-outline" style="color:#fff; border-color:rgba(255,255,255,0.4);">Customer Login</a>
+                <a th:href="@{/admin/login}" class="btn btn-outline" style="color:#fbbf24; border-color:#fbbf24;">Admin Portal</a>
+            </div>
+        </div>
+    </section>
+
+    <div th:replace="~{fragments :: alerts}"></div>
+
+    <div class="container">
+        <div class="section-header">
+            <h2>Shop by Category</h2>
+        </div>
+        <div class="category-pills">
+            <a th:href="@{/products}" class="category-pill">All Products</a>
+            <a th:each="cat : ${categories}"
+               th:href="@{/products(categoryId=${cat.id})}"
+               th:text="${cat.name}"
+               class="category-pill">Category</a>
+        </div>
+
+        <div class="section-header">
+            <h2>Featured Products</h2>
+            <a th:href="@{/products}" class="btn btn-outline btn-sm">View All</a>
+        </div>
+
+        <div th:if="${#lists.isEmpty(featuredProducts)}" class="empty-state">
+            <p>No featured products in the database yet. Log in via <strong>Admin Login</strong> to add products.</p>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(featuredProducts)}" class="product-grid">
+            <div th:each="product : ${featuredProducts}" class="product-card">
+                <a th:href="@{/products/{id}(id=${product.id})}">
+                    <img th:src="${product.imageUrl}" th:alt="${product.name}">
+                </a>
+                <div class="product-body">
+                    <span class="product-category" th:text="${product.category != null ? product.category.name : 'General'}">Category</span>
+                    <a th:href="@{/products/{id}(id=${product.id})}" class="product-title" th:text="${product.name}">Product Name</a>
+                    <div class="product-price" th:text="'₹' + ${#numbers.formatDecimal(product.price, 1, 2)}">₹0.00</div>
+                    <div class="product-actions" th:if="${product.stock > 0}">
+                        <form th:action="@{/cart/add}" method="post" style="flex:1;">
+                            <input type="hidden" name="productId" th:value="${product.id}">
+                            <button type="submit" class="btn btn-primary btn-sm" style="width:100%;">Add to Cart</button>
+                        </form>
+                        <a th:href="@{/checkout/buy-now(productId=${product.id},quantity=1)}"
+                           class="btn btn-success btn-sm" style="flex:1;">Buy Now</a>
+                    </div>
+                    <div class="product-actions" th:if="${product.stock <= 0}">
+                        <button disabled class="btn btn-outline btn-sm" style="width:100%; opacity:0.6;">Out of Stock</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-header">
+            <h2>Latest Arrivals</h2>
+            <a th:href="@{/products}" class="btn btn-outline btn-sm">Explore Catalog</a>
+        </div>
+
+        <div th:if="${#lists.isEmpty(latestProducts)}" class="empty-state">
+            <p>No products available yet. Use <strong>Admin Login</strong> to add your store products.</p>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(latestProducts)}" class="product-grid">
+            <div th:each="product : ${latestProducts}" class="product-card">
+                <a th:href="@{/products/{id}(id=${product.id})}">
+                    <img th:src="${product.imageUrl}" th:alt="${product.name}">
+                </a>
+                <div class="product-body">
+                    <span class="product-category" th:text="${product.category != null ? product.category.name : 'General'}">Category</span>
+                    <a th:href="@{/products/{id}(id=${product.id})}" class="product-title" th:text="${product.name}">Product Name</a>
+                    <div class="product-price" th:text="'₹' + ${#numbers.formatDecimal(product.price, 1, 2)}">₹0.00</div>
+                    <div class="product-actions" th:if="${product.stock > 0}">
+                        <form th:action="@{/cart/add}" method="post" style="flex:1;">
+                            <input type="hidden" name="productId" th:value="${product.id}">
+                            <button type="submit" class="btn btn-primary btn-sm" style="width:100%;">Add to Cart</button>
+                        </form>
+                        <a th:href="@{/checkout/buy-now(productId=${product.id},quantity=1)}"
+                           class="btn btn-success btn-sm" style="flex:1;">Buy Now</a>
+                    </div>
+                    <div class="product-actions" th:if="${product.stock <= 0}">
+                        <button disabled class="btn btn-outline btn-sm" style="width:100%; opacity:0.6;">Out of Stock</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments :: footer}"></div>
+</body>
+</html>

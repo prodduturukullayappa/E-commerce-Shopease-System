@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Admin Login')}"></head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+
+<main class="container">
+    <div th:replace="~{fragments :: alerts}"></div>
+
+    <div class="card auth-box admin-auth-box">
+        <span class="badge badge-pending" style="margin-bottom:8px;">RESTRICTED ACCESS</span>
+        <h2 style="margin-bottom: 6px;">Admin Login</h2>
+        <p style="color: var(--muted); margin-bottom: 20px;">Sign in to manage products, inventory, orders, and payments</p>
+
+        <div th:if="${param.error}" class="alert alert-danger">Invalid administrator credentials.</div>
+        <div th:if="${param.logout}" class="alert alert-success">Admin session ended safely.</div>
+        <div th:if="${param.unauthorized}" class="alert alert-danger">Access Denied: Only Administrator accounts can log in here.</div>
+
+        <form th:action="@{/admin/login}" method="post">
+            <div class="form-group">
+                <label for="email">Admin Email</label>
+                <input type="email" id="email" name="email" class="form-control" required placeholder="admin@shopease.com">
+            </div>
+            <div class="form-group">
+                <label for="password">Admin Password</label>
+                <input type="password" id="password" name="password" class="form-control" required placeholder="Enter admin password">
+            </div>
+            <button type="submit" class="btn btn-dark" style="width:100%; margin-top:8px;">Login to Admin Dashboard</button>
+        </form>
+
+        <hr style="border:none; border-top:1px solid var(--border); margin:16px 0;">
+        <p style="text-align: center; font-size: 0.88rem; color:var(--muted);">
+            Looking to shop as a customer? <a th:href="@{/login}" style="color: var(--primary); font-weight: 700;">Go to Customer Login &rarr;</a>
+        </p>
+    </div>
+</main>
+
+<div th:replace="~{fragments :: footer}"></div>
+</body>
+</html>

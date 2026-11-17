@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title} + ' | ShopEase'">ShopEase</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script th:src="@{/js/app.js}" defer></script>
+</head>
+<body>
+
+<!-- CUSTOMER & PUBLIC NAVBAR -->
+<header th:fragment="navbar" class="navbar">
+    <div class="container nav-wrapper">
+        <a th:href="@{/}" class="brand">Shop<span>Ease</span></a>
+
+        <form th:action="@{/products}" method="get" class="nav-search">
+            <input type="text" name="keyword" placeholder="Search products..." th:value="${selectedKeyword}">
+            <button type="submit">Search</button>
+        </form>
+
+        <nav class="nav-links">
+            <a th:href="@{/}">Home</a>
+            <a th:href="@{/products}">Products</a>
+
+            <!-- Authenticated Customer Links -->
+            <span sec:authorize="hasRole('USER')" style="display:inline-flex; align-items:center; gap:16px;">
+                <a th:href="@{/cart}">
+                    Cart <span class="cart-badge" th:text="${cartCount}">0</span>
+                </a>
+                <a th:href="@{/orders}">My Orders</a>
+                <a th:href="@{/profile}">Profile</a>
+                <form th:action="@{/logout}" method="post" style="display:inline;">
+                    <button type="submit" class="nav-logout-btn">Logout</button>
+                </form>
+            </span>
+
+            <!-- Authenticated Admin Quick Link -->
+            <span sec:authorize="hasRole('ADMIN')" style="display:inline-flex; align-items:center; gap:14px;">
+                <a th:href="@{/admin/dashboard}" class="btn btn-accent btn-sm">Admin Dashboard</a>
+                <form th:action="@{/admin/logout}" method="post" style="display:inline;">
+                    <button type="submit" class="nav-logout-btn">Admin Logout</button>
+                </form>
+            </span>
+
+            <!-- Unauthenticated Visitors: Distinct Customer Login vs Admin Login -->
+            <span sec:authorize="!isAuthenticated()" style="display:inline-flex; align-items:center; gap:12px;">
+                <a th:href="@{/login}" class="btn btn-primary btn-sm">Customer Login</a>
+                <a th:href="@{/register}">Register</a>
+                <a th:href="@{/admin/login}" class="btn btn-accent btn-sm">Admin Login</a>
+            </span>
+        </nav>
+    </div>
+</header>
+
+<!-- DEDICATED ADMIN NAVBAR -->
+<header th:fragment="adminNavbar" class="navbar navbar-admin">
+    <div class="container nav-wrapper">
+        <a th:href="@{/admin/dashboard}" class="brand">Shop<span>Ease</span> <small style="font-size:0.85rem; color:#fbbf24;">ADMIN PORTAL</small></a>
+
+        <nav class="nav-links">
+            <a th:href="@{/admin/dashboard}">Dashboard</a>
+            <a th:href="@{/}" target="_blank">View Storefront</a>
+            <form th:action="@{/admin/logout}" method="post" style="display:inline;">
+                <button type="submit" class="btn btn-danger btn-sm">Admin Logout</button>
+            </form>
+        </nav>
+    </div>
+</header>
+
+<div th:fragment="alerts" class="container">
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+</div>
+
+<footer th:fragment="footer">
+    <div class="container">
+        <p>&copy; 2026 ShopEase E-Commerce Platform. Built with Java, Spring Boot, Thymeleaf &amp; MySQL.</p>
+    </div>
+</footer>
+
+</body>
+</html>

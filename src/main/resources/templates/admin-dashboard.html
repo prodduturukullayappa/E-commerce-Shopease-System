@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Admin Dashboard')}"></head>
+<body>
+<div th:replace="~{fragments :: adminNavbar}"></div>
+
+<main class="container">
+    <div th:replace="~{fragments :: alerts}"></div>
+
+    <div class="section-header">
+        <h2>Admin Control Panel</h2>
+        <span style="color:var(--muted);">Manage Products, Product Details, Order Details &amp; Customers</span>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h4>Total Sales</h4>
+            <div class="value" th:text="'₹' + ${#numbers.formatDecimal(totalSales, 1, 2)}">₹0.00</div>
+        </div>
+        <div class="stat-card">
+            <h4>Total Orders</h4>
+            <div class="value" th:text="${totalOrders}">0</div>
+        </div>
+        <div class="stat-card">
+            <h4>Products Listed</h4>
+            <div class="value" th:text="${totalProducts}">0</div>
+        </div>
+        <div class="stat-card">
+            <h4>Registered Customers</h4>
+            <div class="value" th:text="${totalCustomers}">0</div>
+        </div>
+    </div>
+
+    <div class="category-pills">
+        <button type="button" class="category-pill active" data-tab-target="products-tab">Add &amp; Manage Products</button>
+        <button type="button" class="category-pill" data-tab-target="orders-tab">Order Details &amp; Status</button>
+        <button type="button" class="category-pill" data-tab-target="customers-tab">Customers</button>
+    </div>
+
+    <!-- TAB 1: ADD PRODUCT & INVENTORY -->
+    <div data-tab-panel="products-tab">
+        <div class="grid-2">
+            <div class="card">
+                <h3 style="margin-bottom: 14px;" th:text="${isEditing ? 'Update Product' : 'Add New Product'}">Add New Product</h3>
+                <form th:action="@{/admin/products/save}" th:object="${productForm}" method="post">
+                    <input type="hidden" th:field="*{id}">
+                    <div class="form-group">
+                        <label>Product Name *</label>
+                        <input type="text" th:field="*{name}" class="form-control" required placeholder="e.g. Wireless Noise-Cancelling Headphones">
+                    </div>
+                    <div class="form-group">
+                        <label>Category *</label>
+                        <select name="categoryId" class="form-control" required>
+                            <option th:each="cat : ${categories}"
+                                    th:value="${cat.id}"
+                                    th:text="${cat.name}"
+                                    th:selected="${productForm.category != null && productForm.category.id == cat.id}"></option>
+                        </select>
+                    </div>
+                    <div class="grid-2" style="gap:12px;">
+                        <div class="form-group">
+                            <label>Price (₹) *</label>
+                            <input type="number" step="0.01" min="1" th:field="*{price}" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Stock Quantity *</label>
+                            <input type="number" min="0" th:field="*{stock}" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Product Image URL</label>
+                        <input type="url" th:field="*{imageUrl}" class="form-control" placeholder="https://images.unsplash.com/...">
+                    </div>
+                    <div class="form-group">
+                        <label>Product Description</label>
+                        <textarea th:field="*{description}" rows="2" class="form-control" placeholder="Detailed product specifications"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                            <input type="checkbox" th:field="*{featured}">
+                            <span>Feature on Homepage</span>
+                        </label>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button type="submit" class="btn btn-primary" th:text="${isEditing ? 'Update Product' : 'Add Product'}">Add Product</button>
+                        <a th:if="${isEditing}" th:href="@{/admin/dashboard}" class="btn btn-outline">Cancel Edit</a>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card" style="align-self:start;">
+                <h3 style="margin-bottom: 14px;">Add New Category</h3>
+                <form th:action="@{/admin/categories/save}" method="post">
+                    <div class="form-group">
+                        <label>Category Name *</label>
+                        <input type="text" name="name" class="form-control" required placeholder="e.g. Gaming Accessories">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" name="description" class="form-control" placeholder="Short description">
+                    </div>
+                    <button type="submit" class="btn btn-accent">Create Category</button>
+                </form>
+
+                <h4 style="margin: 24px 0 10px;">Available Categories</h4>
+                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                    <span th:each="cat : ${categories}" class="badge badge-confirmed" th:text="${cat.name}">Category</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card table-responsive">
+            <h3 style="margin-bottom: 14px;">All Products Inventory</h3>
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Product</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Update Stock</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${products}">
+                    <td th:text="${p.id}">1</td>
+                    <td>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <img th:src="${p.imageUrl}" alt="img" style="width:44px; height:44px; object-fit:cover; border-radius:6px;">
+                            <div>
+                                <a th:href="@{/admin/products/{id}(id=${p.id})}" style="font-weight:700; color:var(--primary);" th:text="${p.name}">Name</a>
+                                <div style="font-size:0.78rem; color:var(--muted);" th:text="${p.featured ? 'Featured' : 'Standard'}"></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td th:text="${p.category != null ? p.category.name : '-'}">Category</td>
+                    <td style="font-weight:700;" th:text="'₹' + ${#numbers.formatDecimal(p.price, 1, 2)}">₹0.00</td>
+                    <td>
+                        <form th:action="@{/admin/products/stock}" method="post" style="display:flex; gap:6px; align-items:center;">
+                            <input type="hidden" name="productId" th:value="${p.id}">
+                            <input type="number" name="stock" th:value="${p.stock}" min="0" class="form-control" style="width:78px; padding:6px;">
+                            <button type="submit" class="btn btn-outline btn-sm">Save</button>
+                        </form>
+                    </td>
+                    <td>
+                        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                            <a th:href="@{/admin/products/{id}(id=${p.id})}" class="btn btn-outline btn-sm">Details</a>
+                            <a th:href="@{/admin/dashboard(editId=${p.id})}" class="btn btn-primary btn-sm">Edit</a>
+                            <form th:action="@{/admin/products/delete}" method="post" onsubmit="return confirm('Delete this product?');">
+                                <input type="hidden" name="productId" th:value="${p.id}">
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(products)}">
+                    <td colspan="6" style="text-align:center; color:var(--muted);">No products in database yet. Add your first product above.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- TAB 2: ORDER DETAILS & MANAGEMENT -->
+    <div data-tab-panel="orders-tab" style="display:none;">
+        <div class="card table-responsive">
+            <h3 style="margin-bottom: 14px;">All Customer Orders</h3>
+            <table>
+                <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Payment</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Manage</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="o : ${orders}">
+                    <td>
+                        <a th:href="@{/admin/orders/{id}(id=${o.id})}" style="font-weight:700; color:var(--primary);" th:text="${o.orderNumber}">ORD-1</a><br>
+                        <small style="color:var(--muted);" th:text="${#temporals.format(o.orderDate, 'dd MMM yyyy, hh:mm a')}">Date</small>
+                    </td>
+                    <td>
+                        <strong th:text="${o.user.fullName}">Customer</strong><br>
+                        <small th:text="${o.phone}">Phone</small>
+                    </td>
+                    <td>
+                        <span th:text="${o.paymentMethod}">COD</span><br>
+                        <span class="badge badge-paid" th:text="${o.paymentStatus}">PENDING</span>
+                    </td>
+                    <td style="font-weight:700;" th:text="'₹' + ${#numbers.formatDecimal(o.totalAmount, 1, 2)}">₹0.00</td>
+                    <td>
+                        <span class="badge" th:classappend="${'badge-' + #strings.toLowerCase(o.status)}" th:text="${o.status}">PENDING</span>
+                    </td>
+                    <td>
+                        <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                            <a th:href="@{/admin/orders/{id}(id=${o.id})}" class="btn btn-outline btn-sm">Order Details</a>
+                            <form th:action="@{/admin/orders/status}" method="post" style="display:flex; gap:6px;">
+                                <input type="hidden" name="orderId" th:value="${o.id}">
+                                <select name="status" class="form-control" style="padding:5px; font-size:0.84rem;">
+                                    <option value="PENDING" th:selected="${o.status == 'PENDING'}">PENDING</option>
+                                    <option value="CONFIRMED" th:selected="${o.status == 'CONFIRMED'}">CONFIRMED</option>
+                                    <option value="SHIPPED" th:selected="${o.status == 'SHIPPED'}">SHIPPED</option>
+                                    <option value="DELIVERED" th:selected="${o.status == 'DELIVERED'}">DELIVERED</option>
+                                    <option value="CANCELLED" th:selected="${o.status == 'CANCELLED'}">CANCELLED</option>
+                                </select>
+                                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(orders)}">
+                    <td colspan="6" style="text-align:center; color:var(--muted);">No orders placed yet.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- TAB 3: CUSTOMERS LIST -->
+    <div data-tab-panel="customers-tab" style="display:none;">
+        <div class="card table-responsive">
+            <h3 style="margin-bottom: 14px;">Registered Customers</h3>
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Address</th>
+                    <th>Joined</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="c : ${customers}">
+                    <td th:text="${c.id}">1</td>
+                    <td style="font-weight:600;" th:text="${c.fullName}">Name</td>
+                    <td th:text="${c.email}">Email</td>
+                    <td th:text="${c.phone != null ? c.phone : '-'}">Phone</td>
+                    <td th:text="${c.address != null ? c.address : '-'}">Address</td>
+                    <td th:text="${#temporals.format(c.createdAt, 'dd MMM yyyy')}">Date</td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(customers)}">
+                    <td colspan="6" style="text-align:center; color:var(--muted);">No registered customers yet.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments :: footer}"></div>
+</body>
+</html>
